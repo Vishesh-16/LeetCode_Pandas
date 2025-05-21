@@ -1,0 +1,11 @@
+import pandas as pd
+
+def sales_person(sales_person: pd.DataFrame, company: pd.DataFrame, orders: pd.DataFrame) -> pd.DataFrame:
+    df1 = sales_person.merge(orders, on = "sales_id", how = 'left')
+    df2 = df1.merge(company , on = "com_id" , how = "left" )
+    df3 = df2[["sales_id","name_x","name_y"]]
+
+    df3 = df3.groupby('name_x').apply(lambda x: list(x.name_y)).reset_index()
+    df3 = df3[~df3[0].apply(lambda x: "RED" in x)]
+
+    return df3[["name_x"]].rename(columns={"name_x" : "name"})
