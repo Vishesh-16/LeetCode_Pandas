@@ -1,0 +1,10 @@
+import pandas as pd
+
+def daily_leads_and_partners(daily_sales: pd.DataFrame) -> pd.DataFrame:
+#    df = daily_sales.groupby(["date_id","make_name"])['lead_id'].value_counts().reset_index()
+#    df = daily_sales.groupby(by = ["lead_id","partner_id"], agg =  )
+#    df = daily_sales.groupby(["date_id","make_name"]).agg({"lead_id":"count","partner_id":"count"})
+#    df = daily_sales[["date_id","make_name"]]["lead_id"].value_counts()    
+    df = daily_sales.groupby(["date_id","make_name"])[['lead_id','partner_id']].nunique().reset_index()
+    df.rename(columns = {"lead_id":"unique_leads","partner_id":"unique_partners"},inplace = True)
+    return df
