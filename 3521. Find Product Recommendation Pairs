@@ -12,3 +12,22 @@ def find_product_recommendation_pairs(product_purchases: pd.DataFrame, product_i
     res2 = res1.merge(product_info,left_on = "product2_id",right_on="product_id")
     res2 = res2.rename(columns = {"category_x":"product1_category","category_y":"product2_category"})
     return res2[["product1_id","product2_id","product1_category","product2_category","customer_count"]].sort_values(by = ["customer_count","product1_id","product2_id"], ascending = [False,True,True])
+
+
+
+def find_product_recommendation_pairs(product_purchases: pd.DataFrame, product_info: pd.DataFrame) -> pd.DataFrame:
+    df = product_purchases.merge(product_purchases, on="user_id")
+    df = df[df["product_id_x"] < df["product_id_y"]]
+    df = df[["user_id", "product_id_x", "product_id_y"]].rename(columns={"product_id_x": "product1_id", "product_id_y": "product2_id"})
+
+    counts = df.groupby(["product1_id", "product2_id"]).agg(customer_count=("user_id", "count")).reset_index()
+    popular = counts[counts["customer_count"] > 2]
+
+    enriched = (popular
+        .merge(product_info, left_on="product1_id", right_on="product_id")
+        .merge(product_info, left_on="product2_id", right_on="product_id", suffixes=("_1", "_2")))
+
+    return enriched[["product1_id", "product2_id", "category_1", "category_2", "customer_count"]]\
+        .rename(columns={"category_1": "product1_category", "category_2": "product2_category"})\
+        .sort_values(by=["customer_count", "product1_id", "product2_id"], ascending=[False, True, True])
+
