@@ -1,0 +1,14 @@
+import pandas as pd
+
+def find_product_recommendation_pairs(product_purchases: pd.DataFrame, product_info: pd.DataFrame) -> pd.DataFrame:
+    df = product_purchases.merge(product_purchases, how = "cross")
+    df = df[df["product_id_x"] < df["product_id_y"]]
+    df = df[df["user_id_x"]==df["user_id_y"]]
+    df = df[["user_id_x","product_id_x","product_id_y"]]
+    df = df.rename(columns = {"product_id_x" : "product1_id","product_id_y":"product2_id"})
+    df1 = df.groupby(["product1_id","product2_id"]).agg({"user_id_x":"count"}).reset_index()
+    res = df1[df1["user_id_x"]>2].rename(columns = {"user_id_x":"customer_count"})
+    res1 = res.merge(product_info,left_on = "product1_id",right_on="product_id")
+    res2 = res1.merge(product_info,left_on = "product2_id",right_on="product_id")
+    res2 = res2.rename(columns = {"category_x":"product1_category","category_y":"product2_category"})
+    return res2[["product1_id","product2_id","product1_category","product2_category","customer_count"]].sort_values(by = ["customer_count","product1_id","product2_id"], ascending = [False,True,True])
