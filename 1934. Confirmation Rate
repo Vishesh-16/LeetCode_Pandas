@@ -1,0 +1,44 @@
+
+import pandas as pd
+
+def confirmation_rate(signups: pd.DataFrame, confirmations: pd.DataFrame) -> pd.DataFrame:
+
+    df = confirmations.groupby("user_id")["user_id"].value_counts().reset_index()
+    df.rename(columns = {"count":"total"},inplace = True)
+
+    df1 = confirmations[confirmations["action"]=='confirmed'].groupby('user_id')["action"].value_counts().reset_index()
+    
+    res = df.merge(df1,on = 'user_id',how ='left')
+    res['count'] = np.where(res["count"].isnull(),0, res['count'] )
+
+    res["confirmation_rate"] = res['count']/res['total']
+    res = signups.merge(res,on ='user_id',how = 'left')
+
+    res['confirmation_rate'] = np.where(res['confirmation_rate'].isnull(),0,res['confirmation_rate'])
+    res['confirmation_rate'] = round(res['confirmation_rate'],2)
+
+    return res[["user_id","confirmation_rate"]]
+
+--------------------------------------------------------------------
+OPTIMISED --->
+--------------------------------------------------------------------
+# Count total actions per user
+    total_actions = confirmations.groupby("user_id").size().reset_index(name="total")
+    
+    # Count only 'confirmed' actions per user
+    confirmed_actions = confirmations[confirmations["action"] == "confirmed"] \
+        .groupby("user_id").size().reset_index(name="confirmed")
+    
+    # Merge both counts
+    res = pd.merge(total_actions, confirmed_actions, on="user_id", how="left")
+    res["confirmed"] = res["confirmed"].fillna(0)
+
+    
+# Calculate confirmation rate
+    res["confirmation_rate"] = round(res["confirmed"] / res["total"],2)
+
+    # Merge with signups to ensure all users are included
+    final = pd.merge(signups, res[["user_id", "confirmation_rate"]], on="user_id", how="left")
+    final["confirmation_rate"] = final["confirmation_rate"].fillna(0)
+
+    return final[["user_id", "confirmation_rate"]]
