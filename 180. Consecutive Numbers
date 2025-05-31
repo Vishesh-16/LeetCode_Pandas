@@ -1,0 +1,9 @@
+import pandas as pd
+
+def consecutive_numbers(logs: pd.DataFrame) -> pd.DataFrame:
+    logs["lead"] = logs["num"].shift(1)
+    logs["lag"] = logs["num"].shift(-1)
+    df = logs[(logs["num"] == logs["lead"]) & (logs["lead"] == logs["lag"])]
+    result = pd.DataFrame({'ConsecutiveNums': df["num"].unique()})
+
+    return result
