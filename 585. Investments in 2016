@@ -1,0 +1,16 @@
+import pandas as pd
+
+def find_investments(insurance: pd.DataFrame) -> pd.DataFrame:
+    df = insurance["tiv_2015"].value_counts().reset_index()
+    df1 = df.merge(insurance , on = "tiv_2015")
+    df2 = df1[df1["count"] > 1 ]
+    df3 = insurance[["lat","lon"]].value_counts().reset_index(name = "latloncnt")
+    df4 = df3.merge(insurance, on = ["lat","lon"])
+    df5 = df4[df4["latloncnt"] == 1]
+    df6 = df5.merge(df2,on = "pid")
+    df6["tiv_2016_x"] = df6["tiv_2016_x"].sum()
+    df6 = df6.rename(columns = {"tiv_2016_x":"tiv_2016"})
+
+    return df6[["tiv_2016"]].head(1)
+
+    
