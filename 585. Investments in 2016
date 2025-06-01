@@ -18,23 +18,23 @@ def find_investments(insurance: pd.DataFrame) -> pd.DataFrame:
 import pandas as pd
 
 def find_investments(insurance: pd.DataFrame) -> pd.DataFrame:
-    # Step 1: Find tiv_2015 values that occur more than once
+    
     tiv_counts = insurance["tiv_2015"].value_counts().reset_index()
     tiv_counts.columns = ["tiv_2015", "count"]
     common_tiv = tiv_counts[tiv_counts["count"] > 1]
     
     df1 = insurance.merge(common_tiv[["tiv_2015"]], on="tiv_2015")
     
-    # Step 2: Find lat, lon combinations that are unique
+   
     latlon_counts = insurance[["lat", "lon"]].value_counts().reset_index(name="latloncnt")
     unique_latlon = latlon_counts[latlon_counts["latloncnt"] == 1]
     
     df2 = insurance.merge(unique_latlon[["lat", "lon"]], on=["lat", "lon"])
     
-    # Step 3: Get intersection of the above two conditions
+    
     final_df = df1[df1["pid"].isin(df2["pid"])]
     
-    # Step 4: Sum tiv_2016 and round
+   
     result = round(final_df["tiv_2016"].sum(), 2)
     
     return pd.DataFrame({"tiv_2016": [result]})
