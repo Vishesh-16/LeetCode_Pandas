@@ -7,3 +7,22 @@ def consecutive_numbers(logs: pd.DataFrame) -> pd.DataFrame:
     result = pd.DataFrame({'ConsecutiveNums': df["num"].unique()})
 
     return result
+
+-----------------------------
+
+import pandas as pd
+
+def consecutive_numbers(logs: pd.DataFrame) -> pd.DataFrame:
+
+    logs = logs.copy()  # avoid modifying original DataFrame
+    logs["prev"] = logs["num"].shift(1)
+    logs["next"] = logs["num"].shift(-1)
+
+    df = logs[(logs["num"] == logs["prev"]) & (logs["num"] == logs["next"])]
+
+    unique_vals = df["num"].unique()
+
+    result = pd.DataFrame({'ConsecutiveNums': unique_vals})
+
+    return result
+
