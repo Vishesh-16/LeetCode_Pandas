@@ -1,0 +1,13 @@
+import pandas as pd
+
+def find_books_with_no_available_copies(library_books: pd.DataFrame, borrowing_records: pd.DataFrame) -> pd.DataFrame:
+    df = library_books.merge(borrowing_records, on = 'book_id' )
+    df = df[["book_id","title","author","genre","publication_year","total_copies","return_date"]]
+    df = df[df["return_date"].isna()]
+    df_1 = df.groupby("book_id")["book_id"].value_counts().reset_index(name = "current_borrowers")
+    df = df.merge(df_1, on = "book_id")
+    df = df.drop("return_date",axis = 1).drop_duplicates()
+    df = df[df["total_copies"] == df["current_borrowers"]]
+    df = df[["book_id","title","author","genre","publication_year","current_borrowers"]].sort_values(by = ["current_borrowers","title"], ascending = (False,True))
+    
+    return df
