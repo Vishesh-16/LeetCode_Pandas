@@ -1,0 +1,46 @@
+import pandas as pd
+
+def find_primary_department(employee: pd.DataFrame) -> pd.DataFrame:
+    df = employee[employee["primary_flag"] == 'Y' ]
+    df_1 = employee[employee["primary_flag"] == 'N' ]
+    res = df_1.merge(df, on = "employee_id")
+
+    return df_1
+-----------------------------------------------------------------------------------------------------------
+import pandas as pd
+
+def find_primary_department(employee: pd.DataFrame) -> pd.DataFrame:
+
+    # Count how many departments each employee belongs to
+    dept_counts = employee.groupby('employee_id')['department_id'].count().reset_index(name='dept_count')
+    
+    # Merge count info back to original df
+    employee = employee.merge(dept_counts, on='employee_id', how='left')
+    
+    # CASE 1: Employees with only one department
+    only_one_dept = employee[employee['dept_count'] == 1][['employee_id', 'department_id']]
+    
+    # CASE 2: Employees with multiple departments — pick where primary_flag == 'Y'
+    multiple_depts_primary = employee[(employee['dept_count'] > 1) & (employee['primary_flag'] == 'Y')][['employee_id', 'department_id']]
+    
+    # Combine both cases
+    result = pd.concat([only_one_dept, multiple_depts_primary], ignore_index=True)
+    
+    return result
+
+-----------------------------------------------------------------------------------------------------------
+
+import pandas as pd
+
+def find_primary_department(employee: pd.DataFrame) -> pd.DataFrame:
+
+    # Add department count directly using transform (vectorized)
+    employee['dept_count'] = employee.groupby('employee_id')['department_id'].transform('count')
+    
+    # Keep either:
+    # - the only department (count == 1)
+    # - or the primary one (flag == 'Y')
+    result = employee[(employee['dept_count'] == 1) | (employee['primary_flag'] == 'Y')]
+    
+    # Return only required columns
+    return result[['employee_id', 'department_id']]
