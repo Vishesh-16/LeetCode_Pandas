@@ -1,0 +1,26 @@
+import pandas as pd
+
+def find_students_who_improved(scores: pd.DataFrame) -> pd.DataFrame:
+
+    df = scores.copy()
+    df['exam_date'] = pd.to_datetime(df['exam_date'])
+
+    # Sort by date to get proper order
+    df = df.sort_values(by=['student_id', 'subject', 'exam_date'])
+
+    # Get first and latest score using groupby
+    agg_df = df.groupby(['student_id', 'subject']).agg(
+        first_score=('score', 'first'),
+        latest_score=('score', 'last'),
+        exam_count=('exam_date', 'nunique')
+    ).reset_index()
+
+    # Filter based on condition
+    improved_df = agg_df[(agg_df['exam_count'] >= 2) & (agg_df['latest_score'] > agg_df['first_score'])]
+
+    # Sort result
+    improved_df = improved_df[['student_id', 'subject', 'first_score', 'latest_score']]\
+        .sort_values(by=['student_id', 'subject'])
+
+    return improved_df
+    
