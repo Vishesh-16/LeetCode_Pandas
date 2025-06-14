@@ -1,0 +1,38 @@
+with even_orders as
+(
+select * 
+from orders 
+where order_id % 2 = 0
+),
+odd_orders as
+(
+select * 
+from orders 
+where order_id % 2 != 0
+),
+union_cte as
+(
+select e.order_id as eve_id, e.item as eve_item, o.order_id as odd_id, o.item as odd_item
+from even_orders e join odd_orders o
+on e.order_id - o.order_id = 1
+),
+required_cte as
+(
+(select eve_id as corrected_order_id, odd_item as item
+from union_cte)
+union
+(select odd_id, eve_item
+from union_cte)
+),
+odd_cte as
+(
+select order_id as corrected_order_id, item
+from odd_orders
+where order_id not in (select corrected_order_id from required_cte)
+)
+
+select * from required_cte 
+union
+select * from odd_cte
+order by corrected_order_id
+
